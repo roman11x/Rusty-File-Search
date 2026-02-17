@@ -1,5 +1,7 @@
 use std::fs;
 use std::path::Path;
+use std::sync::Arc;
+use std::thread;
 
 pub struct SearchConfig {
     pub search_term: String,
@@ -14,16 +16,17 @@ impl SearchConfig {
     }
 }
 
-pub fn search(path: &Path, config: &SearchConfig) -> Result <usize, std::io::Error>{
+pub fn search(path: &Path, config: Arc<SearchConfig>) -> Result <usize, std::io::Error>{
     let mut counter = 0;
-
-
+    let mut v_handles  = Vec::new();
     let entries = fs::read_dir(path)?;
 
     for entry in entries {
         let entry = entry?;
         if entry.file_type()?.is_dir() {
-            counter += search(&entry.path(), config)?;
+            let value = config.clone();
+            let handle = thread::spawn(move || search(&entry.path(), value));
+            v_handles.push(handle);
         }
         else if entry.file_type()?.is_file() {
             let file_name_os = entry.file_name();
@@ -33,6 +36,10 @@ pub fn search(path: &Path, config: &SearchConfig) -> Result <usize, std::io::Err
                 counter += 1
             }
         }
+    }
+
+    for handle in v_handles {
+        counter += handle.join().unwrap()?;
     }
 
     Ok(counter)
