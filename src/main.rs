@@ -1,7 +1,7 @@
 mod search;
 
 use search::SearchConfig;
-use search::search;
+use search::parallel_search;
 use std::io::stdin;
 use std::path::{PathBuf};
 use std::sync::Arc;
@@ -17,7 +17,7 @@ fn main() {
     let mut s1 = String::new();
     stdin().read_line(&mut s1).expect("failed to read line");
     let path = PathBuf::from(s1.trim());
-    let count  = search(&path, config).expect("failed to search");
+    let count  = parallel_search(&path, config).expect("failed to search");
 
     if count > 1{
         println!("{} files were found", count);
