@@ -4,6 +4,8 @@ on:
   release:
     types: [created]
 
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -25,10 +27,7 @@ jobs:
           else
             mv target/release/rusty_file_search target/release/rusty_file_search-linux
           fi
-      - name: Upload binaries to release
+      - name: Upload binary to release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            target/release/rusty_file_search-linux
-            target/release/rusty_file_search-macos
-            target/release/rusty_file_search-windows.exe
+          files: target/release/rusty_file_search-*
