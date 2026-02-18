@@ -4,8 +4,8 @@ use std::io::stdin;
 use std::env::var;
 
 pub fn display_results(results: &Vec<PathBuf>){
-    for result in results {
-        println!("{}", result.to_string_lossy().green().bold());
+    for (i, result) in results.iter().enumerate() {
+        println!("{}: {}", i+1, result.to_string_lossy().green().bold());
     }
 }
 
@@ -20,11 +20,16 @@ pub fn print_header(){
   "#;
     println!("{}", s.truecolor(255,140,0).bold());
 }
-pub fn print_prompt() -> (String, String){
+pub fn print_prompt() -> Option<(String, String)>{
     let mut search_term = String::new();
     let mut path = String::new();
-    println!("{}", "please enter the name of the file you would like to search for".red().bold());
+    println!("{}", "please enter the name of the file you would like to search for. Exit to exit".red().bold());
     stdin().read_line(&mut search_term).expect("failed to read line");
+
+    if search_term.trim().to_lowercase() == "exit"{
+        return None;
+    }
+
     println!("{}", "please enter the path to the directory you would like to search, press enter for default home directory".red().bold());
     stdin().read_line(&mut path).expect("failed to read line");
     path = path.trim().to_string();
@@ -36,5 +41,7 @@ pub fn print_prompt() -> (String, String){
             path = var("HOME").unwrap_or(".".to_string());
         }
     }
-    (search_term.trim().to_string(), path)
+
+    Some((search_term.trim().to_string(), path))
 }
+
