@@ -21,12 +21,22 @@ pub fn print_header(){
   "#;
     println!("{}", s.truecolor(255,140,0).bold());
 }
+//A function that prompts the user for a search term and a path
 pub fn print_prompt() -> Option<(String, String)>{
     let mut search_term = String::new();
     let mut path = String::new();
     println!("{}", "please enter the name of the file you would like to search for. Exit to exit".red().bold());
     stdin().read_line(&mut search_term).expect("failed to read line");
-
+    if search_term.trim().is_empty(){ 
+        loop {
+            println!("{}", "please enter a valid search term".red().bold());
+            search_term.clear();
+            stdin().read_line(&mut search_term).expect("failed to read line");
+            if !search_term.trim().is_empty(){
+                break;
+            }
+        }
+    }
     if search_term.trim().to_lowercase() == "exit"{
         return None;
     }

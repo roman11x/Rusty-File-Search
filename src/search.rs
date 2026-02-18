@@ -55,6 +55,9 @@ pub fn parallel_search(path: &Path, config: Arc<SearchConfig>) -> Result<Vec<Pat
     let num_cpus = thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
     let mut results = Vec::new();
     let paths = walk(path)?;
+    if paths.is_empty(){
+        return Ok(Vec::new())
+    }
     let chunks = paths.chunks((paths.len() + num_cpus -1) / num_cpus);
     let mut v_handles  = Vec::new();
     for chunk in chunks {
@@ -76,4 +79,31 @@ pub fn parallel_search(path: &Path, config: Arc<SearchConfig>) -> Result<Vec<Pat
 
     Ok(results)
 
+}
+#[cfg(test)]
+mod tests {
+    use std::fs;
+    use std::fs::File;
+    use std::path::Path;
+
+    #[test]
+    fn test_match() {
+        assert_eq!(super::SearchConfig::new("hello".to_string()).matches("hello world"), true);
+        assert_eq!(super::SearchConfig::new("hello".to_string()).matches("world"), false);
+        assert_eq!(super::SearchConfig::new("hello".to_string()).matches("HELLO WORLD"), true);
+    }
+    #[test]
+    fn test_walk(){
+        fs::create_dir_all("test_walk_dir/sub1");
+        File::create("test_walk_dir/sub1/hello.txt");
+        assert_eq!(super::walk(Path::new("test_walk_dir")).unwrap().len(), 2);
+        fs::remove_dir_all("test_walk_dir").unwrap();
+    }
+    #[test]
+    fn test_search_dir(){
+        fs::create_dir_all("test_search_dir/sub1");
+        File::create("test_search_dir/sub1/hello.txt");
+        assert_eq!(super::search_dir(Path::new("test_search_dir/sub1"), &super::SearchConfig::new("hello".to_string())).unwrap().len(), 1);
+        fs::remove_dir_all("test_search_dir").unwrap();
+    }
 }
