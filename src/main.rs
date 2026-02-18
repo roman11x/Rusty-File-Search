@@ -17,14 +17,14 @@ fn main() {
     let mut s1 = String::new();
     stdin().read_line(&mut s1).expect("failed to read line");
     let path = PathBuf::from(s1.trim());
-    let count  = parallel_search(&path, config).expect("failed to search");
+    let results = parallel_search(&path, config).expect("failed to search");
 
-    if count > 1{
-        println!("{} files were found", count);
+    if results.len() > 1{
+        println!("{} files were found", results.len());
     }
 
     else {
-        println!("{} file was found", count);
+        println!("{} file was found", results.len());
     }
 
 }

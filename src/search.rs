@@ -16,35 +16,7 @@ impl SearchConfig {
     }
 }
 
-pub fn search(path: &Path, config: Arc<SearchConfig>) -> Result <usize, std::io::Error>{
-    let mut counter = 0;
-    let mut v_handles  = Vec::new();
-    let entries = fs::read_dir(path)?;
 
-    for entry in entries {
-        let entry = entry?;
-        if entry.file_type()?.is_dir() {
-            let value = config.clone();
-            let handle = thread::spawn(move || search(&entry.path(), value));
-            v_handles.push(handle);
-        }
-        else if entry.file_type()?.is_file() {
-            let file_name_os = entry.file_name();
-            let file_name = file_name_os.to_string_lossy();
-            if config.matches(&file_name){
-                println!("file {} was found at {}", file_name, entry.path().display());
-                counter += 1
-            }
-        }
-    }
-
-    for handle in v_handles {
-        counter += handle.join().unwrap()?;
-    }
-
-    Ok(counter)
-
-}
 
 pub fn walk(path: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
     let mut v = Vec::new();
@@ -62,47 +34,45 @@ pub fn walk(path: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
 
 }
 
- fn search_dir(path: &Path, config: &SearchConfig) -> Result<usize, std::io::Error> {
-    let mut counter = 0;
+ fn search_dir(path: &Path, config: &SearchConfig) -> Result<Vec<PathBuf>, std::io::Error> {
     let entries = fs::read_dir(path)?;
-
+    let mut v_entries = Vec::new();
     for entry in entries {
         let entry = entry?;
         if entry.file_type()?.is_file() {
             let file_name_os = entry.file_name();
             let file_name = file_name_os.to_string_lossy();
             if config.matches(&file_name){
-                println!("file {} was found at {}", file_name, entry.path().display());
-                counter += 1
+                v_entries.push(entry.path());
             }
         }
     }
-    Ok(counter)
+    Ok(v_entries)
 }
 
-pub fn parallel_search(path: &Path, config: Arc<SearchConfig>) -> Result<usize, std::io::Error> {
+pub fn parallel_search(path: &Path, config: Arc<SearchConfig>) -> Result<Vec<PathBuf>, std::io::Error> {
     let num_cpus = thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
-    let mut counter = 0;
+    let mut results = Vec::new();
     let paths = walk(path)?;
     let chunks = paths.chunks((paths.len() + num_cpus -1) / num_cpus);
     let mut v_handles  = Vec::new();
     for chunk in chunks {
         let value = chunk.to_vec();
         let config = config.clone();
-        let handle = thread::spawn(move || -> Result<usize, std::io::Error>
+        let handle = thread::spawn(move || -> Result<Vec<PathBuf>, std::io::Error>
         {
-            let mut sum = 0;
+            let mut result = Vec::new();
             for path in value {
-                sum += search_dir(&path, &config)?;
+               result.extend(search_dir(&path, &config)?);
             }
-            Ok(sum)
+            Ok(result)
         });
         v_handles.push(handle);
     }
     for handle in v_handles {
-        counter += handle.join().unwrap()?;
+        results.extend(handle.join().unwrap()?);
     }
 
-    Ok(counter)
+    Ok(results)
 
 }
