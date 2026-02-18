@@ -15,10 +15,19 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --release
+      - name: Rename binary
+        run: if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          mv target/release/rusty_file_search.exe target/release/rusty_file_search-windows.exe
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+          mv target/release/rusty_file_search target/release/rusty_file_search-macos
+          else
+          mv target/release/rusty_file_search target/release/rusty_file_search-linux
+          fi
+        shell: bash
       - name: Upload binaries to release
-        uses: actions/upload-artifact@v4
+        uses: softprops/action-gh-release@v2
         with:
-          name: rusty_file_search-${{ matrix.os }}
-          path: |
-            target/release/rusty_file_search
-            target/release/rusty_file_search.exe
+          files: |
+            target/release/rusty_file_search-linux
+            target/release/rusty_file_search-macos
+            target/release/rusty_file_search-windows.exe
