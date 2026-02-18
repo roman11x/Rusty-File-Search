@@ -1,32 +1,19 @@
 mod search;
+mod tui;
 
 use search::SearchConfig;
 use search::parallel_search;
-use std::io::stdin;
 use std::path::{PathBuf};
 use std::sync::Arc;
 
+
 fn main() {
-    println!("please enter the name of the file you would like to search for");
-    let mut s = String::new();
-    stdin().read_line(&mut s).expect("failed to read line");
-    let search_term = s.trim();
+    tui::print_header();
+    let (search_term, path) = tui::print_prompt();
     let config = Arc::new(SearchConfig::new(search_term.to_string()));
-
-    println!("please enter the path to the directory you would like to search");
-    let mut s1 = String::new();
-    stdin().read_line(&mut s1).expect("failed to read line");
-    let path = PathBuf::from(s1.trim());
+    let path = PathBuf::from(path);
     let results = parallel_search(&path, config).expect("failed to search");
-
-    if results.len() > 1{
-        println!("{} files were found", results.len());
-    }
-
-    else {
-        println!("{} file was found", results.len());
-    }
-
+    tui::display_results(&results);
 }
 
 
