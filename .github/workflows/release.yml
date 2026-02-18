@@ -1,0 +1,24 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+      - name: Upload binaries to release
+        uses: actions/upload-artifact@v4
+        with:
+          name: rusty_file_search-${{ matrix.os }}
+          path: |
+            target/release/rusty_file_search
+            target/release/rusty_file_search.exe
