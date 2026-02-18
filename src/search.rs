@@ -49,7 +49,8 @@ pub fn walk(path: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
     }
     Ok(v_entries)
 }
-
+// a parallel search function that walks through all the directories in the path
+//and then splits the directories into chunks and searches each chunk in parallel
 pub fn parallel_search(path: &Path, config: Arc<SearchConfig>) -> Result<Vec<PathBuf>, std::io::Error> {
     let num_cpus = thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
     let mut results = Vec::new();

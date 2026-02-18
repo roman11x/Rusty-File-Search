@@ -7,6 +7,7 @@ pub fn display_results(results: &Vec<PathBuf>){
     for (i, result) in results.iter().enumerate() {
         println!("{}: {}", i+1, result.to_string_lossy().green().bold());
     }
+    print_summary(results);
 }
 
 pub fn print_header(){
@@ -45,3 +46,14 @@ pub fn print_prompt() -> Option<(String, String)>{
     Some((search_term.trim().to_string(), path))
 }
 
+fn print_summary(results: &Vec<PathBuf>){
+    if results.len() > 1{
+        println!("{} results found", results.len().to_string().blue().bold());
+    }
+   else if results.len() == 1{
+       println!("{}", "1 result found".blue().bold());
+   }
+    else{
+        println!("{}", "no results found".red().bold());
+    }
+}
