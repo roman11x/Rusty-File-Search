@@ -20,11 +20,21 @@ impl SearchConfig {
 
 pub fn walk(path: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
     let mut v = Vec::new();
-    let entries = fs::read_dir(path)?;
+    let entries = match fs::read_dir(path){
+        Ok(entries) => entries,
+        Err(_) => return Ok(v) // skip directories we can't read
+    };
     v.push(path.to_path_buf());
     for entry in entries {
-        let entry = entry?;
-        if entry.file_type()?.is_dir() {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(_) => continue, //skip files we can't read
+        };
+        let file_type = match entry.file_type() {
+            Ok(file_type) => file_type,
+            Err(_) => continue, //skip files we cannot determine the type of
+        };
+        if file_type.is_dir() {
             let sub_paths = walk(&entry.path())?;
             v.extend(sub_paths);
         }
@@ -35,11 +45,21 @@ pub fn walk(path: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
 }
 
  fn search_dir(path: &Path, config: &SearchConfig) -> Result<Vec<PathBuf>, std::io::Error> {
-    let entries = fs::read_dir(path)?;
+    let entries = match fs::read_dir(path){
+        Ok(entries) => entries,
+        Err(_) => return Ok(Vec::new()) // return an empty vector if we can't read the directory
+    };
     let mut v_entries = Vec::new();
     for entry in entries {
-        let entry = entry?;
-        if entry.file_type()?.is_file() {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(_) => continue,  // skip files we can't read
+        };
+        let file_type = match entry.file_type() {
+            Ok(file_type) => file_type,
+            Err(_) => continue, //skip files we cannot determine the type of
+        };
+        if file_type.is_file() {
             let file_name_os = entry.file_name();
             let file_name = file_name_os.to_string_lossy();
             if config.matches(&file_name){
