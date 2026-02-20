@@ -1,13 +1,36 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use colored::Colorize;
 use std::io::stdin;
 use std::env::var;
-
+use std::process::Command;
 pub fn display_results(results: &Vec<PathBuf>){
     for (i, result) in results.iter().enumerate() {
         println!("{}: {}", i+1, result.to_string_lossy().green().bold());
     }
     print_summary(results);
+    if results.is_empty(){
+        return;
+    }
+    else if results.len() == 1{
+        println!("{}", " single file found, opening file...".blue().bold());
+        open_file(&results[0]);
+        return;
+    }
+    loop{
+        println!("{}", "please enter the number of the path you would like to open, enter to skip".blue().bold());
+        let mut input = String::new();
+        stdin().read_line(&mut input).expect("failed to read line");
+        if input.trim().is_empty(){
+            break;
+        }
+        match input.trim().parse::<usize>(){
+            Ok(index) if index > 0 && index <= results.len() =>{
+                open_file(&results[index-1]);
+            }
+            _ => println!("{}", "please enter a valid number".red().bold())
+        }
+    }
+
 }
 
 pub fn print_header(){
@@ -65,5 +88,31 @@ fn print_summary(results: &Vec<PathBuf>){
    }
     else{
         println!("{}", "no results found".red().bold());
+    }
+}
+
+fn open_file(path: &Path){
+    let result = if cfg!(target_os = "windows") { //open the containing folder on Windows
+        // explorer /select,"C:\path\to\file.txt"
+        // Highlights the specific file in Explorer
+        Command::new("explorer")
+            .arg(format!("/select,\"{}\"", path.display()))
+            .spawn()
+
+    } else if cfg!(target_os = "macos") { //open the containing folder on macOS
+        // open -R "/path/to/file.txt"
+        // Reveals and highlights the file in Finder
+        Command::new("open")
+            .arg("-R")
+            .arg(path).spawn()
+    } else {  //user is on Linux, on Linux if you provide the entire path to a file, it will open the file
+              //xdg-open /path/to/file.txt
+        match path.parent(){
+            Some(folder) => Command::new("xdg-open").arg(folder).spawn(),
+            None => Err( std::io::Error::new( std::io::ErrorKind::Other, "no parent folder found"))
+        }
+    };
+    if let Err(e) = result {
+        println!("error opening file: {}", e);
     }
 }
