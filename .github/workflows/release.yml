@@ -27,7 +27,19 @@ jobs:
           else
             mv target/release/rusty_file_search target/release/rusty_file_search-linux
           fi
-      - name: Upload binary to release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.os }}
+          path: target/release/rusty_file_search-*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      - name: Upload binaries to release
         uses: softprops/action-gh-release@v2
         with:
-          files: target/release/rusty_file_search-*
+          files: binary-*/rusty_file_search-*
