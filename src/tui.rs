@@ -96,7 +96,7 @@ fn open_file(path: &Path){
         // explorer /select,"C:\path\to\file.txt"
         // Highlights the specific file in Explorer
         Command::new("explorer")
-            .arg(format!("/select,\"{}\"", path.display()))
+            .args(["/select,", &path.to_string_lossy().to_string()])
             .spawn()
 
     } else if cfg!(target_os = "macos") { //open the containing folder on macOS
