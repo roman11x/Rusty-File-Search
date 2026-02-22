@@ -1,6 +1,6 @@
 # Rusty File Search
 
-A fast, multithreaded file search tool built from scratch in Rust. Designed for people who just want to find a file by name — quickly, without the bloat.
+A fast, multithreaded file search tool built from scratch in Rust. 
 
 <!-- Screenshot of the tool in action -->
 <!-- ![Rusty File Search demo](screenshots/demo.png) -->
@@ -13,6 +13,7 @@ Rusty File Search takes a filename (or part of one), scans through your director
 
 - **Multithreaded search** — splits work across all your CPU cores using standard library threading primitives (no external concurrency frameworks)
 - **Smart matching** — case-insensitive, partial filename matching. Searching `note` finds `Notes.txt`, `my_notebook.pdf`, and `NOTES_2024.docx`
+- **Opens the containing folder** — select any result and it opens the folder in your file manager with the file highlighted, on all platforms
 - **Cross-platform** — works on Linux, macOS, and Windows
 - **Unicode support** — handles Hebrew, Arabic, Chinese, emoji filenames — anything UTF-8
 - **Simple TUI** — colorful terminal interface anyone can use, no command-line flags to memorize
@@ -22,13 +23,14 @@ Rusty File Search takes a filename (or part of one), scans through your director
 
 <!-- Add your screenshots here. Suggested screenshots: -->
 
-![Welcome banner](screenshots/windows1.png) -->
+![Welcome banner](screenshots/windowsdemo.gif) 
 
-<!-- 2. A search in action with results -->
+<!-- 2. A search in action with results 
 ![Search results](screenshots/linux1.png) -->
 
 <!-- 3. No results found -->
- ![No results](screenshots/linux2.png) -->
+ ![No results](screenshots/linux2.png) 
+ ![Linux Demo](screenshots/linuxdemo.gif)
 
 ## Installation
 
@@ -81,6 +83,8 @@ Rusty File Search uses a two-phase approach:
 
 1. **Walk** — traverses the directory tree and collects all directories
 2. **Search** — distributes the directories across worker threads (one per CPU core), each thread scans its assigned directories for matching filenames
+
+When you select a result, it opens the containing folder in your system's file manager with the file highlighted — using explorer /select on Windows, open -R on macOS, and xdg-open on Linux.
 
 All threading is implemented using Rust's standard library (`std::thread`, `std::sync::Arc`) without external concurrency crates like `rayon`. The number of threads automatically matches your CPU's available parallelism.
 
