@@ -23,7 +23,7 @@ Rusty File Search takes a filename (or part of one), scans through your director
 
 <!-- Add your screenshots here. Suggested screenshots: -->
 
-![Welcome banner](screenshots/windowsdemo.gif) 
+![Welcome banner](screenshots/windows1.png) 
 
 <!-- 2. A search in action with results 
 ![Search results](screenshots/linux1.png) -->
